@@ -8,17 +8,20 @@ public class LlistaExemplars extends Llista<Exemplar> implements Serializable {
 
     @Override
     public void afegir(Exemplar exemplar) throws BiblioException {
-        Iterator<Exemplar> it = llista.iterator();
+        if (contains(exemplar.getId())) {
+            throw new BiblioException("Ja existeix un exemplar amb aquest identificador.");
+        }
+        super.afegir(exemplar);
+    }
 
+    public boolean contains(String id) {
+        Iterator<Exemplar> it = llista.iterator();
         while (it.hasNext()) {
             Exemplar e = it.next();
-            // Comprovem si l'identificador ja existeix
-            if (e.getId().equals(exemplar.getId())) {
-                throw new BiblioException("Ja existeix un exemplar amb aquest identificador.");
+            if (e.getId().equals(id)) {
+                return true;
             }
         }
-
-        // Si el bucle acaba i no ha saltat l'excepció, cridem el mètode del pare per afegir-lo
-        super.afegir(exemplar);
+        return false;
     }
 }

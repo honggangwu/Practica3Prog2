@@ -1,9 +1,12 @@
 package prog2.model;
 
-public class PrestecLlarg extends Prestec {
+import java.io.Serializable;
+import java.util.Date;
 
-    public PrestecLlarg(Exemplar exemplar, Usuari usuari) {
-        super(exemplar, usuari);
+public class PrestecLlarg extends Prestec implements Serializable {
+
+    public PrestecLlarg(Exemplar exemplar, Usuari usuari, Date dataCreacio) {
+        super(exemplar, usuari, dataCreacio);
     }
 
     @Override
@@ -13,7 +16,7 @@ public class PrestecLlarg extends Prestec {
 
     @Override
     public long duradaPrestec() {
-        // 140 segons convertits a mil·lisegons
-        return 140L * 1000;
+        // 14 dies = 140 segons en mil·lisegons
+        return 140 * 1000L;
     }
 }

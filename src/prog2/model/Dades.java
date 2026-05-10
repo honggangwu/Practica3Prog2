@@ -1,21 +1,16 @@
 package prog2.model;
 
 import prog2.vista.BiblioException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 
-/**
- * Classe Dades que gestiona la lògica de negoci de la biblioteca.
- * Implementa la interfície InDades.
- */
-public class Dades implements InDades {
+public class Dades implements InDades, Serializable {
 
     private LlistaExemplars llistaExemplars;
     private LlistaUsuaris llistaUsuaris;
     private LlistaPrestecs llistaPrestecs;
 
-    /**
-     * Constructor per defecte que inicialitza les llistes de dades.
-     */
     public Dades() {
         llistaExemplars = new LlistaExemplars();
         llistaUsuaris = new LlistaUsuaris();
@@ -25,7 +20,6 @@ public class Dades implements InDades {
     @Override
     public void afegirExemplar(String id, String titol, String autor, boolean admetPrestecLlarg) throws BiblioException {
         Exemplar nouExemplar = new Exemplar(id, titol, autor, admetPrestecLlarg);
-        // El mètode afegir de LlistaExemplars hauria de llançar excepció si l'ID ja existeix
         llistaExemplars.afegir(nouExemplar);
     }
 
@@ -42,7 +36,6 @@ public class Dades implements InDades {
         } else {
             nouUsuari = new Professor(email, nom, adreca);
         }
-        // El mètode afegir de LlistaUsuaris hauria de llançar excepció si l'email ja existeix
         llistaUsuaris.afegir(nouUsuari);
     }
 
@@ -56,48 +49,51 @@ public class Dades implements InDades {
         Exemplar exemplar = llistaExemplars.getAt(exemplarPos);
         Usuari usuari = llistaUsuaris.getAt(usuariPos);
 
-        // 1. Comprovar disponibilitat de l'exemplar
         if (!exemplar.isDisponible()) {
             throw new BiblioException("L'exemplar no està disponible.");
         }
 
-        // 2. Comprovar si l'usuari té préstecs endarrerits
         if (tePrestecsEndarrerits(usuari)) {
             throw new BiblioException("L'usuari té préstecs endarrerits i no pot realitzar nous préstecs.");
         }
 
         Prestec nouPrestec;
+        Date ara = new Date();
+
         if (esLlarg) {
-            // 3. Comprovar si l'exemplar admet préstec llarg
-            if (!exemplar.isAdmetPrestecLlarg()) {
+            if (!exemplar.getAdmetPrestecLlarg()) {
                 throw new BiblioException("Aquest exemplar no admet préstecs de llarg termini.");
             }
-            // 4. Comprovar límit de préstecs llargs de l'usuari
             if (comptarPrestecsActius(usuari, true) >= usuari.getMaxPrestecsLlargs()) {
                 throw new BiblioException("L'usuari ha superat el límit de préstecs llargs.");
             }
-            nouPrestec = new PrestecLlarg(exemplar, usuari);
+            nouPrestec = new PrestecLlarg(exemplar, usuari, ara);
+
+            // INCREMENTAR COMPTADOR USUARI
+            usuari.setNumPrestecsLlargs(usuari.getNumPrestecsLlargs() + 1);
+
         } else {
-            // 5. Comprovar límit de préstecs normals de l'usuari
             if (comptarPrestecsActius(usuari, false) >= usuari.getMaxPrestecsNormals()) {
                 throw new BiblioException("L'usuari ha superat el límit de préstecs normals.");
             }
-            nouPrestec = new PrestecNormal(exemplar, usuari);
+            nouPrestec = new PrestecNormal(exemplar, usuari, ara);
+
+            // INCREMENTAR COMPTADOR USUARI
+            usuari.setNumPrestecsNormals(usuari.getNumPrestecsNormals() + 1);
         }
 
-        // Realitzar el préstec: l'exemplar passa a no disponible automàticament
         llistaPrestecs.afegir(nouPrestec);
         exemplar.setDisponible(false);
     }
-
     @Override
     public void retornarPrestec(int position) throws BiblioException {
-        Prestec prestec = llistaPrestecs.getAt(position);
-
-        if (prestec.isRetornat()) {
-            throw new BiblioException("Aquest préstec ja ha estat retornat anteriorment.");
+        // Obtenim de la llista de no retornats per coherència amb la vista
+        ArrayList<Prestec> noRetornats = recuperaPrestecsNoRetornats();
+        if (position < 0 || position >= noRetornats.size()) {
+            throw new BiblioException("Posició de préstec no vàlida.");
         }
 
+        Prestec prestec = noRetornats.get(position);
         prestec.setRetornat(true);
         prestec.getExemplar().setDisponible(true);
     }
@@ -111,19 +107,17 @@ public class Dades implements InDades {
     public ArrayList<Prestec> recuperaPrestecsNoRetornats() {
         ArrayList<Prestec> noRetornats = new ArrayList<>();
         for (Prestec p : llistaPrestecs.getArrayList()) {
-            if (!p.isRetornat()) {
+            if (!p.getRetornat()) {
                 noRetornats.add(p);
             }
         }
         return noRetornats;
     }
 
-    // Mètodes auxiliars privats per a les validacions de negoci
-
     private int comptarPrestecsActius(Usuari usuari, boolean esLlarg) {
         int count = 0;
         for (Prestec p : llistaPrestecs.getArrayList()) {
-            if (!p.isRetornat() && p.getUsuari().equals(usuari)) {
+            if (!p.getRetornat() && p.getUsuari().getEmail().equals(usuari.getEmail())) {
                 if (esLlarg && p instanceof PrestecLlarg) count++;
                 if (!esLlarg && p instanceof PrestecNormal) count++;
             }
@@ -132,10 +126,9 @@ public class Dades implements InDades {
     }
 
     private boolean tePrestecsEndarrerits(Usuari usuari) {
-        long ara = System.currentTimeMillis();
         for (Prestec p : llistaPrestecs.getArrayList()) {
-            if (!p.isRetornat() && p.getUsuari().equals(usuari)) {
-                if (ara > p.getDataLimitRetorn().getTime()) {
+            if (!p.getRetornat() && p.getUsuari().getEmail().equals(usuari.getEmail())) {
+                if (p.prestecEndarrerit()) {
                     return true;
                 }
             }

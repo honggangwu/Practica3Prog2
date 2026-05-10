@@ -1,9 +1,13 @@
 package prog2.model;
 
-public class PrestecNormal extends Prestec {
+import java.io.Serializable;
+import java.util.Date;
 
-    public PrestecNormal(Exemplar exemplar, Usuari usuari) {
-        super(exemplar, usuari);
+public class PrestecNormal extends Prestec implements Serializable {
+
+    // Constructor amb 3 paràmetres per satisfer el test
+    public PrestecNormal(Exemplar exemplar, Usuari usuari, Date dataCreacio) {
+        super(exemplar, usuari, dataCreacio);
     }
 
     @Override
@@ -13,7 +17,7 @@ public class PrestecNormal extends Prestec {
 
     @Override
     public long duradaPrestec() {
-        // 70 segons convertits a mil·lisegons
-        return 70L * 1000;
+        // 70 segons en mil·lisegons [cite: 25]
+        return 70 * 1000L;
     }
 }

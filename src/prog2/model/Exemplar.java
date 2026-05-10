@@ -1,20 +1,15 @@
 package prog2.model;
 
-public class Exemplar implements InExemplar{
+import java.io.Serializable;
 
-    private String idExemplar; // L'identificador ha de ser numèric
+public class Exemplar implements InExemplar, Serializable {
+
+    private String idExemplar;
     private String titol;
     private String autor;
     private boolean admetPrestecLlarg;
-    private boolean disponible; // Indica si l'exemplar es troba disponible
+    private boolean disponible;
 
-    /**
-     * Constructor per inicialitzar els valors dels atributs[cite: 107].
-     * @param idExemplar Identificador numèric de l'exemplar.
-     * @param titol Títol del llibre.
-     * @param autor Autor del llibre.
-     * @param admetPrestecLlarg Booleà que indica si permet préstecs de llarga durada.
-     */
     public Exemplar(String idExemplar, String titol, String autor, boolean admetPrestecLlarg) {
         this.idExemplar = idExemplar;
         this.titol = titol;
@@ -62,7 +57,6 @@ public class Exemplar implements InExemplar{
     public boolean getAdmetPrestecLlarg() {
         return admetPrestecLlarg;
     }
-
     public boolean isDisponible() {
         return disponible;
     }
@@ -73,10 +67,7 @@ public class Exemplar implements InExemplar{
 
     @Override
     public String toString() {
-        return "Id=" + idExemplar +
-                ", Titol " + titol +
-                ", Autor " + autor +
-                ", Admet Prestec Llarg " + admetPrestecLlarg +
-                ", Disponible=" + disponible;
+        return "Id=" + idExemplar + ", Titol " + titol + ", Autor " + autor +
+                ", Admet Prestec Llarg " + admetPrestecLlarg + ", Disponible=" + disponible;
     }
 }

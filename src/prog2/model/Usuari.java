@@ -1,13 +1,14 @@
 package prog2.model;
 
-public abstract class Usuari implements InUsuari {
+import java.io.Serializable;
+
+public abstract class Usuari implements InUsuari, Serializable {
     private String email;
     private String nom;
     private String adreca;
     private int numPrestecsNormals;
     private int numPrestecsLlargs;
 
-    // Constructor que inicialitza els atributs principals
     public Usuari(String email, String nom, String adreca) {
         this.email = email;
         this.nom = nom;
@@ -15,6 +16,10 @@ public abstract class Usuari implements InUsuari {
         this.numPrestecsNormals = 0;
         this.numPrestecsLlargs = 0;
     }
+
+    public abstract String tipusUsuari();
+    public abstract int getMaxPrestecsNormals();
+    public abstract int getMaxPrestecsLlargs();
 
     @Override
     public void setEmail(String email) {
@@ -66,7 +71,6 @@ public abstract class Usuari implements InUsuari {
         return this.numPrestecsLlargs;
     }
 
-    // El toString utilitza el mètode abstracte tipusUsuari() per saber quin tipus imprimir
     @Override
     public String toString() {
         return "Tipus=" + tipusUsuari() +
